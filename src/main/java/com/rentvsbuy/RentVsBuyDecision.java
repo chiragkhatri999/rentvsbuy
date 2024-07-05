@@ -40,7 +40,8 @@ public class RentVsBuyDecision {
 
         double effectiveAverageRateOfYearlyEquityReturns = averageRateOfYearlyEquityReturns - averageInflationPerYear;
         double effectiveAverageReturnPerMonth = effectiveAverageRateOfYearlyEquityReturns/12;
-        // unrecoverable cost for rent
+
+        // Cost for rent
         long rentPaidPerYear = 12 * rentPerMonth;
         BigDecimal totalRentPaid = BigDecimal.ZERO;
         double tempRentPerYear = rentPaidPerYear;
@@ -51,21 +52,20 @@ public class RentVsBuyDecision {
         }
         System.out.println("Total rent paid: " + totalRentPaid);
 
-        BigDecimal totalSIPReturnForRentDuration = stepUpSIPCalculator(totalRentPaid.divide(BigDecimal.valueOf(structureLifeInYears* 12L), RoundingMode.HALF_UP), effectiveAverageReturnPerMonth, structureLifeInYears*12);
-        System.out.println("Total SIP return after rent duration: " + totalSIPReturnForRentDuration);
+        BigDecimal sipPaidPerMonth = totalRentPaid.divide(BigDecimal.valueOf(structureLifeInYears* 12L), RoundingMode.HALF_UP);
+        BigDecimal finalSIPInvestmentValue = stepUpSIPCalculator(sipPaidPerMonth, effectiveAverageReturnPerMonth, structureLifeInYears*12);
+        System.out.println("Total SIP value if rent value invested in SIP: " + finalSIPInvestmentValue);
 
 
-
-        // unrecoverable cost for owning
+        // Cost for owning
 
         // equity cost
         BigDecimal equityInvested = fixedSetupCost.add(downPayment);
-
         BigDecimal finalEquityValue = calculateCompoundedValue(equityInvested, effectiveAverageRateOfYearlyEquityReturns, structureLifeInYears, 1);
         System.out.println("Total equity value: " + finalEquityValue);
 
         // debt cost
-        // SIP opportunity lost due to interest + principal paid per month
+        // SIP opportunity lost due to EMI(interest + principal) paid per month
         BigDecimal loanPrincipal = propertyValue.subtract(downPayment);
         double effectiveLoanRateOfInterest = loanRateOfInterest - averageInflationPerYear;
         BigDecimal totalLoanPaid = calculateTotalLoanPaid(loanPrincipal, effectiveLoanRateOfInterest, loanDurationInYears);
@@ -75,10 +75,10 @@ public class RentVsBuyDecision {
         BigDecimal emiPaidPerMonth = totalLoanPaid.divide(BigDecimal.valueOf(loanDurationInYears* 12L), RoundingMode.HALF_UP);
         System.out.println("EMI per month: " + emiPaidPerMonth);
 
-        BigDecimal totalSIPReturnForLoanDuration = stepUpSIPCalculator(emiPaidPerMonth, effectiveAverageReturnPerMonth, loanDurationInYears*12);
-        System.out.println("Total SIP return after loan duration: " + totalSIPReturnForLoanDuration);
-        BigDecimal totalSIPReturnForPropertyDuration = calculateCompoundedValue(totalSIPReturnForLoanDuration, effectiveAverageRateOfYearlyEquityReturns, structureLifeInYears-loanDurationInYears, 1);
-        System.out.println("Total SIP return till property duration: " + totalSIPReturnForPropertyDuration);
+        BigDecimal totalSIPReturnBasedOnEMIForLoanDuration = stepUpSIPCalculator(emiPaidPerMonth, effectiveAverageReturnPerMonth, loanDurationInYears*12);
+        System.out.println("Total SIP return after loan duration: " + totalSIPReturnBasedOnEMIForLoanDuration);
+        BigDecimal totalSIPValueInsteadOfEMI = calculateCompoundedValue(totalSIPReturnBasedOnEMIForLoanDuration, effectiveAverageRateOfYearlyEquityReturns, structureLifeInYears-loanDurationInYears, 1);
+        System.out.println("Total SIP return till property duration: " + totalSIPValueInsteadOfEMI);
 
         // value of owned piece of land
         double landOwnedInSqFt = plotAreaInSqFt * landPercentOwned;
@@ -86,17 +86,20 @@ public class RentVsBuyDecision {
         System.out.println("Initial land value: " + initialLandValue);
         double effectiveAverageRateOfYearlyLandRatesIncrease = averageRateOfYearlyLandRatesIncrease - averageInflationPerYear;
         BigDecimal finalLandValue = calculateCompoundedValue(BigDecimal.valueOf(initialLandValue), effectiveAverageRateOfYearlyLandRatesIncrease, structureLifeInYears, 1);
-        System.out.println("Final land value: " + finalLandValue);
+        System.out.println("Appreciated land value: " + finalLandValue);
 
-        // maintenance cost for structure life (ignoring opportunity cost for this)
+        // maintenance cost for structure life
+        // ... coming soon
 
 
         // yearly tax
+        // ... coming soon
 
 
-        BigDecimal totalCostOfOwning = totalSIPReturnForPropertyDuration.add(finalEquityValue).subtract(finalLandValue);
+        // reducing land value, since it is effectively reducing final cost
+        BigDecimal totalCostOfOwning = totalSIPValueInsteadOfEMI.add(finalEquityValue).subtract(finalLandValue);
 
-        BigDecimal totalCostOfRenting = totalRentPaid.add(totalSIPReturnForRentDuration);
+        BigDecimal totalCostOfRenting = totalRentPaid.add(finalSIPInvestmentValue);
 
         System.out.println("Total cost of owning: " + totalCostOfOwning);
         System.out.println("Total cost of renting: " + totalCostOfRenting);

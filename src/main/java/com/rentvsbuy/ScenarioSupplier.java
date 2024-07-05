@@ -32,12 +32,12 @@ public class ScenarioSupplier {
                 .plotAreaInSqFt(3300)
                 .plotRatePerSqFt(5500)
                 .rentPerMonth(17000L)
-                .rentMultiplierPerYear(1.1)
+                .rentMultiplierPerYear(1.05)
                 .loanRateOfInterest(0.09d)
-                .loanDurationInYears(20)
+                .loanDurationInYears(10)
                 .averageInflationPerYear(0.055d)
                 .averageRateOfYearlyEquityReturns(0.08d)
-                .averageRateOfYearlyLandRatesIncrease(0.1d)
+                .averageRateOfYearlyLandRatesIncrease(0.072d)
                 .build();
     }
 
